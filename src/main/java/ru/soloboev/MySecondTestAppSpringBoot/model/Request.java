@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -25,6 +26,7 @@ public class Request {
     private Systems systemName;
     private String systemTime;
     private String source;
+    private Instant receivedTime;
 
     @Min(value = 1, message = "Минимальное значение — 1")
     @Max(value = 100000, message = "Максимальное значение — 100000")
@@ -45,6 +47,7 @@ public class Request {
                 ", templateId='" + templateId + '\'' +
                 ", productCode='" + productCode + '\'' +
                 ", smsCode='" + smsCode + '\'' +
+                ", receivedTime='" + receivedTime + '\'' +
                 '}';
     }
 }

@@ -13,26 +13,36 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.soloboev.MySecondTestAppSpringBoot.exception.UnsupportedCodeException;
 import ru.soloboev.MySecondTestAppSpringBoot.exception.ValidationFailedException;
 import ru.soloboev.MySecondTestAppSpringBoot.model.*;
+import ru.soloboev.MySecondTestAppSpringBoot.service.ModifyRequestService;
+import ru.soloboev.MySecondTestAppSpringBoot.service.ModifyRequestServiceSource;
 import ru.soloboev.MySecondTestAppSpringBoot.service.ModifyResponseService;
 import ru.soloboev.MySecondTestAppSpringBoot.service.ValidationService;
 import ru.soloboev.MySecondTestAppSpringBoot.util.DateTimeUtil;
 
+import java.time.Instant;
 import java.util.Date;
 @Slf4j
 @RestController
 public class MyController {
     private final ValidationService validationService;
     private final ModifyResponseService modifyResponseService;
+    private final ModifyRequestService modifyRequestService;
+    private final ModifyRequestServiceSource modifyRequestServiceSource;
     @Autowired
     public MyController(ValidationService validationService,
-                        @Qualifier("ModifySystemTimeResponseService") ModifyResponseService modifyResponseService){
+                        @Qualifier("ModifySystemTimeResponseService") ModifyResponseService modifyResponseService,
+                        @Qualifier("ModifyRequestServiceSource") ModifyRequestService modifyRequestService,
+                        @Qualifier("ModifyRequestServiceSource") ModifyRequestServiceSource modifyRequestServiceSource){
         this.validationService = validationService;
         this.modifyResponseService = modifyResponseService;
+        this.modifyRequestService = modifyRequestService;
+        this.modifyRequestServiceSource = modifyRequestServiceSource;
     }
     @PostMapping(value = "/feedback")
     public ResponseEntity<Response> feedback(@Valid @RequestBody Request request,
                                              BindingResult bindingResult){
         log.info("Received request: {}", request);
+        request.setReceivedTime(Instant.now());
         Response response = Response.builder()
                 .uid(request.getUid())
                 .operationUid(request.getOperationUid())
@@ -74,7 +84,9 @@ public class MyController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         modifyResponseService.modify(response);
+        modifyRequestService.modify(request);
         log.info("Final response: {}", response);
+        log.info("Final request: {}", request);
         return new ResponseEntity<>(modifyResponseService.modify(response), HttpStatus.OK);
     }
 }
